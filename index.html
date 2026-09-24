@@ -39,11 +39,11 @@
       <div class="card-row">
         <div class="card">
           <h2>What this is</h2>
-          <p>A 5-minute entry point for operators. It explains the target install flow, who owns what, and how to tell READY apart from OPERATIONALLY VALIDATED.</p>
+          <p>A 5-minute entry point for operators. It explains the shipped install flow, who owns what, and how to tell READY apart from OPERATIONALLY VALIDATED.</p>
         </div>
         <div class="card">
           <h2>What this is not</h2>
-          <p>Not a controller, runtime, or dashboard. Paseo is the runtime. This page only documents the accepted target behavior.</p>
+          <p>Not a controller, runtime, or dashboard. Paseo is the runtime. This page only documents the shipped bootstrap flow.</p>
         </div>
       </div>
     </section>
@@ -51,24 +51,25 @@
     <section id="status" aria-labelledby="status-heading">
       <h2 id="status-heading">Status banner</h2>
       <div class="status-banner" role="status">
-        <p><strong>Phase: SPECIFICATION — DESIGN COMPLETE.</strong> This guide describes the accepted <em>target</em> behavior. It is <strong>not</strong> OPERATIONALLY VALIDATED.</p>
+        <p><strong>Phase: BOOTSTRAP SHIPPED.</strong> The upstream <code>paseo-workflow</code> bootstrap (<code>install.sh</code>, <code>verify.sh</code>, <code>tests/test.sh</code>, <code>install-project.sh</code>) is implemented and shipped. This guide documents that shipped flow. This guide itself is <strong>not</strong> operational validation.</p>
         <ul>
-          <li><code>install.sh</code> and <code>verify.sh</code> are the accepted TARGET scripts — <strong>not yet shipped</strong> in this starter snapshot.</li>
-          <li>Do not claim the repo is OPERATIONALLY VALIDATED until Smoke Preflight + A–G all pass with evidence.</li>
-          <li>Source of truth: the real <code>paseo-workflow</code> repo specs (V0.2), execution brief, and bootstrap policy.</li>
+          <li>Do not claim OPERATIONALLY VALIDATED until Preflight + smoke A–G, the regression suite, live idempotency, and secret-safety checks all pass with observable evidence.</li>
+          <li>Source of truth: the <code>paseo-workflow</code> repo on GitHub (README, AGENTS.md, docs).</li>
         </ul>
       </div>
     </section>
 
     <section id="prerequisites" aria-labelledby="prereq-heading">
       <h2 id="prereq-heading">Prerequisites</h2>
-      <p>You need all five before the target install flow can succeed:</p>
+      <p>You need all of these before the shipped install flow can succeed:</p>
       <ul>
         <li><strong>WSL2 Ubuntu</strong> — supported host environment.</li>
         <li><strong>Bash</strong> — install and verify scripts run under Bash.</li>
         <li><strong>Git</strong> — clone the repo and track state.</li>
         <li><strong>Node / npm</strong> — required toolchain dependency.</li>
         <li><strong>Paseo CLI</strong> — the runtime CLI must be installed and reachable.</li>
+        <li><strong>Codex CLI (external)</strong> — installed and authenticated by you on the host. The bootstrap detects and verifies it but never installs or upgrades it. A missing binary means BLOCKED.</li>
+        <li><strong>OpenCode CLI (external)</strong> — installed and authenticated by you on the host. The bootstrap detects and verifies it but never installs or upgrades it. A missing binary means BLOCKED.</li>
       </ul>
       <div class="code-sample">
         <!-- Illustrative version checks — validate against your real runtime -->
@@ -78,36 +79,40 @@ bash --version
 git --version
 node --version
 npm --version
-paseo --version</code></pre>
-        <button class="copy-btn" data-copy="wsl --status; bash --version; git --version; node --version; npm --version; paseo --version" type="button">Copy</button>
+paseo --version
+codex --version
+opencode --version</code></pre>
+        <button class="copy-btn" data-copy="wsl --status; bash --version; git --version; node --version; npm --version; paseo --version; codex --version; opencode --version" type="button">Copy</button>
       </div>
     </section>
 
     <section id="quickstart" aria-labelledby="quickstart-heading">
-      <h2 id="quickstart-heading">Quickstart — 5-minute target flow</h2>
-      <p>The accepted target flow (once <code>install.sh</code> / <code>verify.sh</code> ship):</p>
+      <h2 id="quickstart-heading">Quickstart — 5-minute shipped flow</h2>
+      <p>The shipped flow:</p>
       <ol class="flow">
-        <li><strong>Clone:</strong> <code>git clone</code> the paseo-workflow repo.</li>
+        <li><strong>Clone:</strong> <code>git clone https://github.com/khoawatt/paseo-workflow.git</code>.</li>
         <li><strong>Read:</strong> read <code>AGENTS.md</code> first — it defines operating rules.</li>
-        <li><strong>Install:</strong> run <code>bash install.sh</code> — reconciles providers, profiles, and skills (idempotent, never replaces user credentials).</li>
-        <li><strong>Verify:</strong> run <code>verify.sh</code> — prints one of <code>READY</code>, <code>AUTH_REQUIRED</code>, or <code>BLOCKED</code>.</li>
+        <li><strong>Dry run:</strong> run <code>bash install.sh --dry-run</code> to preview changes.</li>
+        <li><strong>Install:</strong> run <code>bash install.sh</code> — reconciles providers, profiles, and skills (reconcile-not-replace, never touches your credentials).</li>
+        <li><strong>Verify:</strong> run <code>bash verify.sh</code> — prints one of <code>READY</code>, <code>AUTH_REQUIRED</code>, or <code>BLOCKED</code>.</li>
         <li><strong>Smoke:</strong> run Smoke Preflight + A–G checklist below.</li>
-        <li><strong>Done:</strong> the repo is OPERATIONALLY VALIDATED <em>only if</em> every smoke item passes with expected evidence.</li>
+        <li><strong>Done:</strong> OPERATIONALLY VALIDATED <em>only if</em> the full gate passes with observable evidence (Preflight + A–G, regression suite, live idempotency, secret-safety).</li>
       </ol>
       <div class="code-sample">
-        <pre><code>git clone &lt;repo-url&gt; paseo-workflow
+        <pre><code>git clone https://github.com/khoawatt/paseo-workflow.git
 cd paseo-workflow
 cat AGENTS.md
+bash install.sh --dry-run
 bash install.sh
 bash verify.sh</code></pre>
-        <button class="copy-btn" data-copy="git clone <repo-url> paseo-workflow" type="button">Copy</button>
+        <button class="copy-btn" data-copy="git clone https://github.com/khoawatt/paseo-workflow.git" type="button">Copy</button>
       </div>
       <div class="code-sample">
         <pre><code>bash verify.sh
 # expected: READY | AUTH_REQUIRED | BLOCKED</code></pre>
         <button class="copy-btn" data-copy="bash verify.sh" type="button">Copy</button>
       </div>
-      <p class="note">Note: <code>install.sh</code> / <code>verify.sh</code> are TARGET, not shipped here. Commands above document intent so Worker-B's scripts can attach later.</p>
+      <p class="note">Note: Codex and OpenCode are external prerequisites you install and authenticate yourself — the bootstrap only detects and verifies them. Install is idempotent (reconcile-not-replace): a changed live config is backed up with mode 0600 under a timestamped name, and a no-op rerun creates no backup.</p>
     </section>
 
     <section id="concepts" aria-labelledby="concepts-heading">
@@ -132,6 +137,8 @@ bash verify.sh</code></pre>
       </div>
       <div class="status-banner">
         <p><strong>There is NO custom:</strong> workflow controller, agent runtime, workspace manager, router, permission queue, scheduler, or state machine in this repo. If you think you need one, re-read the authority order — use Paseo primitives or propose the smallest compatible change.</p>
+        <p><strong>Profile mapping (per AGENTS.md):</strong> Lead → <code>codex-lead</code>; Planning / Research → <code>opencode-worker</code>; Implementation → <code>codex-worker</code>; Review → a fresh restricted session (prefer provider/model diversity from Implementation); Specialist → a domain-appropriate restricted provider/model.</p>
+        <p><strong>Capability classes:</strong> the provider ID plus <code>paseoTools</code> defines the tool-capability boundary — workers run with <code>paseoTools.enabled=false</code>. <strong>Model strength never grants orchestration authority.</strong></p>
       </div>
     </section>
 
@@ -157,45 +164,44 @@ bash verify.sh</code></pre>
       <p>Install is idempotent: it reconciles repo defaults with user state and never overwrites credentials or personal config.</p>
       <div class="tabs" data-tabs="ownership">
         <div role="tablist" aria-label="Ownership categories">
-          <button role="tab" id="tab-ownership-repo" aria-selected="true" aria-controls="panel-ownership-repo" type="button">Repo-owned</button>
-          <button role="tab" id="tab-ownership-user" aria-selected="false" aria-controls="panel-ownership-user" type="button" tabindex="-1">User-owned</button>
-          <button role="tab" id="tab-ownership-runtime" aria-selected="false" aria-controls="panel-ownership-runtime" type="button" tabindex="-1">Runtime/host-owned</button>
+          <button role="tab" id="tab-ownership-paseo" aria-selected="true" aria-controls="panel-ownership-paseo" type="button">Paseo-owned</button>
+          <button role="tab" id="tab-ownership-repo" aria-selected="false" aria-controls="panel-ownership-repo" type="button" tabindex="-1">Repo-owned</button>
+          <button role="tab" id="tab-ownership-human" aria-selected="false" aria-controls="panel-ownership-human" type="button" tabindex="-1">Human/host-owned</button>
+        </div>
+        <div role="tabpanel" id="panel-ownership-paseo" aria-labelledby="tab-ownership-paseo">
+          <h3>Paseo-owned</h3>
+          <ul>
+            <li>Agent lifecycle, delegation, handoff, advisor, committee</li>
+            <li>Workspaces / worktrees, messages, permissions, schedules, heartbeats</li>
+            <li>Provider discovery, Profiles, and runtime state</li>
+          </ul>
+          <p>Paseo is the orchestration runtime — the repo plugs into it, never re-implements it.</p>
         </div>
         <div role="tabpanel" id="panel-ownership-repo" aria-labelledby="tab-ownership-repo">
           <h3>Repo-owned</h3>
           <ul>
-            <li>Provider classes and capability defaults</li>
-            <li>Tool policy</li>
-            <li>Profile mapping</li>
-            <li>Skills packaging</li>
-            <li>MCP injection config</li>
+            <li>Three required provider capability classes and owned profile routing/notes</li>
+            <li>MCP injection settings and native skill presence</li>
+            <li>Safe merge rules, bootstrap verification, and sanitized evidence</li>
             <li>Repo invariants (idempotency, reconcile-not-replace)</li>
+            <li><code>install-project.sh</code> is read-only: it never writes <code>paseo.json</code></li>
           </ul>
         </div>
-        <div role="tabpanel" id="panel-ownership-user" aria-labelledby="tab-ownership-user">
-          <h3>User-owned</h3>
+        <div role="tabpanel" id="panel-ownership-human" aria-labelledby="tab-ownership-human">
+          <h3>Human / host-owned</h3>
           <ul>
-            <li>Credentials, tokens, and auth state</li>
-            <li>Preferred models and provider choices</li>
-            <li>Personal config (editor, shell, paths)</li>
+            <li>Codex and OpenCode installation, updates, executable selection, credentials, authentication</li>
+            <li>Model / thinking preferences and unrelated providers, profiles, and config</li>
+            <li>All high-impact approvals</li>
           </ul>
-          <p>Install must never delete or replace these — reconcile around them.</p>
-        </div>
-        <div role="tabpanel" id="panel-ownership-runtime" aria-labelledby="tab-ownership-runtime">
-          <h3>Runtime / host-owned</h3>
-          <ul>
-            <li>Agent, session, and workspace IDs</li>
-            <li>Transient runtime state</li>
-            <li>Backups created during reconcile</li>
-          </ul>
-          <p>Ephemeral by nature — scripts read it, never claim it.</p>
+          <p>Install must never delete or replace these — reconcile around them. Never commit live config, backups, credentials, auth state, session IDs, or private keys.</p>
         </div>
       </div>
     </section>
 
     <section id="verification" aria-labelledby="verification-heading">
       <h2 id="verification-heading">Verification states</h2>
-      <p><code>verify.sh</code> (target) prints exactly one state. READY is necessary but <strong>not</strong> sufficient for OPERATIONALLY VALIDATED.</p>
+      <p><code>verify.sh</code> prints exactly one state. READY is necessary but <strong>not</strong> sufficient for OPERATIONALLY VALIDATED — the full gate also requires smoke Preflight + A–G, the regression suite, live idempotency, and secret-safety checks with observable evidence.</p>
       <div class="tabs" data-tabs="verification">
         <div role="tablist" aria-label="Verification states">
           <button role="tab" id="tab-verification-ready" aria-selected="true" aria-controls="panel-verification-ready" type="button">READY</button>
@@ -208,24 +214,27 @@ bash verify.sh</code></pre>
         </div>
         <div role="tabpanel" id="panel-verification-auth" aria-labelledby="tab-verification-auth">
           <h3>AUTH_REQUIRED</h3>
-          <p>Toolchain is fine but credentials / provider auth are missing. Fix auth (user-owned), re-run <code>verify.sh</code>, do not edit repo policy to bypass it.</p>
+          <p>A required installed provider needs interactive human login. Follow that provider's native login flow, then rerun <code>bash verify.sh</code>. Never collect credentials or write them into the repo.</p>
         </div>
         <div role="tabpanel" id="panel-verification-blocked" aria-labelledby="tab-verification-blocked">
           <h3>BLOCKED</h3>
-          <p>A prerequisite or invariant failed (e.g. missing CLI, unreconciled profile). Read the evidence line, fix the blocker, re-run. Never skip to smoke.</p>
+          <p>A safety, policy, platform, missing external runtime, or other non-auth prerequisite failed — including a missing Codex or OpenCode binary. Read the evidence line for the next action, fix the blocker, re-run. Never skip to smoke.</p>
         </div>
       </div>
       <div class="code-sample">
         <pre><code>bash verify.sh
-# READY != OPERATIONALLY VALIDATED (smoke must still pass)</code></pre>
+# READY != OPERATIONALLY VALIDATED (full gate must still pass)
+bash tests/test.sh
+# fixture tests only — never prove live auth, discovery, or permissions</code></pre>
         <button class="copy-btn" data-copy="bash verify.sh" type="button">Copy</button>
       </div>
+      <p class="note">Keep evidence labels distinct: <code>implemented</code>, <code>fixture-tested</code>, <code>runtime-tested</code>, <code>not tested / blocked</code>. Fixture tests never prove live provider auth, MCP profile discovery, capability calls, worktree isolation, or permission behavior.</p>
     </section>
 
     <section id="smoke" aria-labelledby="smoke-heading">
-      <h2 id="smoke-heading">Smoke checklist — Preflight + A–G</h2>
-      <p>Check each item only when you have the expected evidence. Progress persists locally (see comment at top of file for key).</p>
-      <div id="smoke-progress" role="status">0 of 8 complete</div>
+      <h2 id="smoke-heading">Smoke checklist — Preflight + A–G + full gate</h2>
+      <p>Check each item only when you have the expected evidence. Progress is counted automatically and persists locally (see comment at top of file for key).</p>
+      <div id="smoke-progress" role="status">0 complete</div>
       <button id="reset-progress" type="button">Reset progress</button>
       <ul class="checklist">
         <li><label><input type="checkbox" data-check="preflight"> <strong>Preflight — capability boundary check</strong> — Purpose: prove Lead can access Paseo orchestration (create_agent etc.) while codex-worker / opencode-worker do NOT receive create_agent; workers retain coding/research caps. Expected evidence: capability inspection output. Spec ref sec 24.</label></li>
@@ -236,6 +245,9 @@ bash verify.sh</code></pre>
         <li><label><input type="checkbox" data-check="e"> <strong>E — Native handoff / advisor / committee</strong> — Purpose: native Paseo handoff / advisor / committee. Expected evidence: native Paseo handoff/advisor/committee trace.</label></li>
         <li><label><input type="checkbox" data-check="f"> <strong>F — Follow-up / redirect / cancel / archive</strong> — Purpose: follow-up / redirect / cancel / archive. Expected evidence: lifecycle controls trace.</label></li>
         <li><label><input type="checkbox" data-check="g"> <strong>G — Runtime permission boundary</strong> — Purpose: runtime permission boundary. Expected evidence: permission allow/deny enforced at runtime.</label></li>
+        <li><label><input type="checkbox" data-check="regression"> <strong>Regression suite</strong> — Purpose: bootstrap regression suite. Expected evidence: <code>bash tests/test.sh</code> reports observable PASS (fixture-tested only — never proves live behavior).</label></li>
+        <li><label><input type="checkbox" data-check="idempotency"> <strong>Live idempotency</strong> — Purpose: idempotent rerun on the live host. Expected evidence: rerun shows no diff and creates no extra backup.</label></li>
+        <li><label><input type="checkbox" data-check="secrets"> <strong>Secret-safety</strong> — Purpose: secret-safety check. Expected evidence: no credentials, tokens, or private keys in the repo or logs.</label></li>
       </ul>
     </section>
 
@@ -245,7 +257,7 @@ bash verify.sh</code></pre>
         <dt>Auth fails / AUTH_REQUIRED won't clear?</dt>
         <dd>Credentials are user-owned. Re-authenticate in your provider, confirm <code>paseo --version</code> works, then re-run <code>verify.sh</code>. Never hardcode tokens into the repo.</dd>
         <dt>Blocked prereqs?</dt>
-        <dd>Install the missing prerequisite (WSL2 Ubuntu, Bash, Git, Node/npm, Paseo CLI) and re-run. BLOCKED means stop — do not skip ahead to smoke.</dd>
+        <dd>Install the missing prerequisite (WSL2 Ubuntu, Bash, Git, Node/npm, Paseo CLI, or the external Codex/OpenCode CLIs you manage yourself) and re-run. BLOCKED means stop — do not skip ahead to smoke.</dd>
         <dt>Can I re-run install safely?</dt>
         <dd>Yes — install is idempotent by design. Re-running reconciles without replacing user config; backups are runtime/host-owned transient state.</dd>
         <dt>Runtime and docs disagree?</dt>
@@ -260,19 +272,27 @@ bash verify.sh</code></pre>
 
     <section id="next" aria-labelledby="next-heading">
       <h2 id="next-heading">Next steps</h2>
-      <p>Canonical sources live in the real paseo-workflow checkout at <code>/home/audition/projects/personal/paseo-workflow</code>:</p>
+      <p>Canonical sources live in the upstream <code>paseo-workflow</code> repo on GitHub:</p>
       <ul>
-        <li><code>README.md</code> — full project readme in the real checkout at <code>/home/audition/projects/personal/paseo-workflow/README.md</code>.</li>
-        <li><code>AGENTS.md</code> — operating rules, read before installing (<code>/home/audition/projects/personal/paseo-workflow/AGENTS.md</code>).</li>
-        <li><code>docs/specs/2026-09-24-paseo-workflow-bootstrap-v1.md</code> — bootstrap spec (<code>/home/audition/projects/personal/paseo-workflow/docs/specs/2026-09-24-paseo-workflow-bootstrap-v1.md</code>).</li>
-        <li><a href="https://github.com/">Upstream repository placeholder on GitHub</a> — replace with the real upstream URL when published.</li>
+        <li><a href="https://github.com/khoawatt/paseo-workflow">paseo-workflow repository</a> — clone it to start.</li>
+        <li><a href="https://github.com/khoawatt/paseo-workflow/blob/main/README.md">README.md</a> — full project readme.</li>
+        <li><a href="https://github.com/khoawatt/paseo-workflow/blob/main/AGENTS.md">AGENTS.md</a> — operating rules, read before installing.</li>
+        <li><a href="https://github.com/khoawatt/paseo-workflow/blob/main/docs/SETUP.md">docs/SETUP.md</a> — setup guide.</li>
+        <li><a href="https://github.com/khoawatt/paseo-workflow/blob/main/docs/CONFIGURATION.md">docs/CONFIGURATION.md</a> — configuration reference.</li>
+        <li><a href="https://github.com/khoawatt/paseo-workflow/blob/main/docs/VALIDATION.md">docs/VALIDATION.md</a> — validation gate.</li>
+        <li><a href="https://github.com/khoawatt/paseo-workflow/blob/main/docs/TROUBLESHOOTING.md">docs/TROUBLESHOOTING.md</a> — troubleshooting.</li>
+        <li><a href="https://github.com/khoawatt/paseo-workflow/blob/main/docs/OPENCODE_COMPATIBILITY.md">docs/OPENCODE_COMPATIBILITY.md</a> — OpenCode provider compatibility.</li>
+        <li><a href="https://github.com/khoawatt/paseo-workflow/blob/main/docs/specs/2026-09-24-paseo-workflow-bootstrap-v1.md">Bootstrap V1 spec</a> — accepted bootstrap specification.</li>
       </ul>
-      <p class="note">No local <code>./spec/</code> paths are linked here; resolve canonical sources against <code>/home/audition/projects/personal/paseo-workflow</code>.</p>
+      <div class="code-sample">
+        <pre><code>git clone https://github.com/khoawatt/paseo-workflow.git</code></pre>
+        <button class="copy-btn" data-copy="git clone https://github.com/khoawatt/paseo-workflow.git" type="button">Copy</button>
+      </div>
     </section>
   </main>
 
   <footer class="site-footer">
-    <p>Static starter guide. Phase: SPECIFICATION / DESIGN COMPLETE — not OPERATIONALLY VALIDATED.</p>
+    <p>Static starter guide. Upstream bootstrap is shipped — this guide itself is not OPERATIONALLY VALIDATED.</p>
   </footer>
 
   <script src="app.js" defer></script>
