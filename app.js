@@ -2,7 +2,7 @@
   'use strict';
 
   var CHECKLIST_KEY = 'paseo-starter-checklist-v1';
-  var VALID_KEYS = ['preflight', 'a', 'b', 'c', 'd', 'e', 'f', 'g'];
+  var VALID_KEYS = ['preflight', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'regression', 'idempotency', 'secrets'];
 
   function prefersReducedMotion() {
     if (typeof window.matchMedia !== 'function') {
