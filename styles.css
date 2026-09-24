@@ -69,6 +69,16 @@ body {
   outline-offset: 2px;
 }
 
+/* Two-color focus on dark nav/header: white ring + blue halo for >=3:1 on #111c33 */
+.site-header :focus-visible,
+#site-nav :focus-visible,
+.nav-list a:focus-visible,
+.skip-link:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px #005fcc;
+}
+
 .site-header {
   background: var(--nav-bg);
   color: var(--nav-ink);
